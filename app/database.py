@@ -3,7 +3,6 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 from contextlib import contextmanager
 from typing import Optional, List, Dict
-import json
 
 from app.config import settings
 from app.models import (
