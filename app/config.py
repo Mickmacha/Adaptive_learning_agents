@@ -3,8 +3,9 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = "postgresql://user:password@localhost:5432/web3_lms_agents"
-    # For development: "sqlite:///./web3_lms.db"
+    # DATABASE_URL: str = "postgresql://user:password@localhost:5432/web3_lms_agents"
+    # For development: 
+    DATABASE_URL: str = "sqlite:///./web3_lms.db"
     
     # LLM
     ANTHROPIC_API_KEY: str
