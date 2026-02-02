@@ -62,6 +62,87 @@ class StudentChatResponse(BaseModel):
             }
         }
 
+# ==================== CAREER ONBOARDING ====================
+
+class CareerOnboardingRequest(BaseModel):
+    """Career onboarding form data structure."""
+    currentStatus: str = Field(..., description="Current employment status")
+    currentRole: Optional[str] = None
+    yearsOfExperience: Optional[str] = None
+    industryBackground: str
+    technicalLevel: str
+    programmingLanguages: List[str] = Field(default_factory=list)
+    hasBlockchainExp: str
+    hasAIExp: str
+    targetRole: List[str] = Field(..., min_items=1, description="At least one target role required")
+    careerTimeline: str
+    geographicPreference: str
+    primaryMotivation: List[str] = Field(default_factory=list)
+    webThreeInterest: Optional[str] = None
+    aiInterest: Optional[str] = None
+    strongSkills: List[str] = Field(default_factory=list)
+    wantToImprove: List[str] = Field(default_factory=list)
+    learningStyle: str
+    timeCommitment: str
+    shortTermGoal: str
+    concerns: Optional[str] = None
+    additionalInfo: Optional[str] = None
+    agreeToTerms: bool = Field(..., description="Must be true to submit")
+    submittedAt: str  # ISO 8601 timestamp
+    walletAddress: str = Field(..., min_length=42, max_length=42, description="Ethereum wallet address")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "currentStatus": "employed",
+                "currentRole": "Software Engineer",
+                "yearsOfExperience": "3",
+                "industryBackground": "tech",
+                "technicalLevel": "intermediate",
+                "programmingLanguages": ["JavaScript/TypeScript", "Python"],
+                "hasBlockchainExp": "minimal",
+                "hasAIExp": "hands-on",
+                "targetRole": ["Smart Contract Developer"],
+                "careerTimeline": "6-12",
+                "geographicPreference": "remote",
+                "primaryMotivation": ["Learning new technologies"],
+                "webThreeInterest": "defi",
+                "aiInterest": "llm-apps",
+                "strongSkills": ["Problem-solving", "Fast learner"],
+                "wantToImprove": ["Technical skills"],
+                "learningStyle": "hands-on",
+                "timeCommitment": "10-15",
+                "shortTermGoal": "portfolio",
+                "concerns": "Finding time to learn",
+                "additionalInfo": "I have React experience",
+                "agreeToTerms": True,
+                "submittedAt": "2024-01-15T10:30:00.000Z",
+                "walletAddress": "0x1234567890123456789012345678901234567890"
+            }
+        }
+
+class CareerOnboardingResponse(BaseModel):
+    """Response after processing career onboarding."""
+    success: bool
+    profileId: str  # wallet_address
+    recommendations: Dict
+    message: str
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "success": True,
+                "profileId": "0x1234567890123456789012345678901234567890",
+                "recommendations": {
+                    "learningPath": "Beginner → Intermediate → Advanced",
+                    "recommendedCourses": ["Blockchain Fundamentals", "Solidity Basics"],
+                    "skillPriorities": ["Smart Contracts", "DeFi"],
+                    "timeline": "6-12"
+                },
+                "message": "Welcome! Your career profile has been created. Let's start your learning journey!"
+            }
+        }
+
 # ==================== USER PROFILE ====================
 
 class UserProfileResponse(BaseModel):
