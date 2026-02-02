@@ -27,16 +27,16 @@ class UserProfile(Base):
 
     __tablename__ = "user_profiles"
 
-    walletaddress = Column(String, primary_key=True)
-    created_at = Column(DateTime, default=datetime.now(datetime.UTC))
+    wallet_address = Column(String(42), primary_key=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(
         DateTime,
-        default=datetime.now(datetime.UTC),
-        onupdate=datetime.now(datetime.UTC),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
     )
 
-    email = Column(String(255), nullable=False, unique=True)
-    display_name = Column(String(100), nullable=False)
+    email = Column(String(255), nullable=True, unique=True)
+    display_name = Column(String(100), nullable=True)
 
     career_context = Column(JSON, default=dict, nullable=True)
     skill_profile = Column(JSON, default=dict, nullable=True)
