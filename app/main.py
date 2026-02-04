@@ -2,6 +2,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
+from .agents.student_agent import StudentCompanionAgent
 from .database import get_db
 from .schemas import (
     AgentAnalyticsCreate,
@@ -14,8 +15,6 @@ from .schemas import (
     UserProfileResponse,
     UserProfileUpdate,
 )
-from .agents.student_agent import StudentCompanionAgent
-
 
 app = FastAPI(
     title="Adaptive Learning Agents", description="API for Adaptive Learning Agents"
@@ -43,6 +42,7 @@ async def career_onboarding(
     Handle career onboarding form submission.
     Creates user profile and generates personalized learning recommendations.
     """
+    print("Career onboarding form received", form_data)
     if not form_data.agreeToTerms:
         raise HTTPException(
             status_code=400, detail="Must agree to terms to submit onboarding"
@@ -88,14 +88,14 @@ async def career_onboarding(
         success=True,
         profileId=form_data.walletAddress,
         recommendations=recommendations,
-        message=result.get("response", "Welcome! Your career profile has been created."),
+        message=result.get(
+            "response", "Welcome! Your career profile has been created."
+        ),
     )
 
 
 @app.post("/student/chat", response_model=StudentChatResponse)
-async def student_chat(
-    payload: StudentChatRequest, db: Session = Depends(get_db)
-):
+async def student_chat(payload: StudentChatRequest, db: Session = Depends(get_db)):
     """
     Main chat endpoint for student-agent interactions.
     Handles all modes: career, learning, progress, recommendations, general.

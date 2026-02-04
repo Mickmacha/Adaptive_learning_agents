@@ -46,7 +46,7 @@ class StudentCompanionAgent:
     def __init__(self, db_session):
         self.db = db_session
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-flash", api_key=settings.GEMINI_API_KEY
+            model="gemini-2.5-flash", api_key=settings.GEMINI_API_KEY
         )
         self.graph = self.build_graph()
 
@@ -67,7 +67,7 @@ class StudentCompanionAgent:
         workflow.add_node("update_profile", self.update_user_profile_node)
 
         # Entry point
-        workflow.set_entry("load_context")
+        workflow.set_entry_point("load_context")
 
         # Sequential flow with summarization check
         workflow.add_edge("load_context", "summarize_if_needed")

@@ -43,6 +43,9 @@ class UserProfile(Base):
     learning_preferences = Column(JSON, default=dict, nullable=True)
     learning_challenges = Column(JSON, default=list, nullable=True)
 
+    total_conversations = Column(Integer, default=0, nullable=False)
+    last_active = Column(DateTime, nullable=True)
+
     conversations = relationship(
         "Conversation", back_populates="user", cascade="all, delete-orphan"
     )
