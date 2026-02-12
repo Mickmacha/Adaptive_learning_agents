@@ -64,32 +64,60 @@ class StudentChatResponse(BaseModel):
 
 # ==================== CAREER ONBOARDING ====================
 
+class CourseInfo(BaseModel):
+    courseId: str
+    courseName: str
+
+class SuggestedCourse(BaseModel):
+    courseId: str
+    courseName: str
+    reason: Optional[str] = None
+
 class CareerOnboardingRequest(BaseModel):
     """Career onboarding form data structure."""
+    # Current Situation
     currentStatus: str = Field(..., description="Current employment status")
     currentRole: Optional[str] = None
     yearsOfExperience: Optional[str] = None
     industryBackground: str
+    
+    # Tech Background
     technicalLevel: str
     programmingLanguages: List[str] = Field(default_factory=list)
     hasBlockchainExp: str
     hasAIExp: str
-    targetRole: List[str] = Field(..., min_items=1, description="At least one target role required")
+    
+    # Career Goals
+    targetRole: List[str] = Field(..., min_items=1)
     careerTimeline: str
     geographicPreference: str
+    
+    # Motivation & Interests
     primaryMotivation: List[str] = Field(default_factory=list)
     webThreeInterest: Optional[str] = None
     aiInterest: Optional[str] = None
+    
+    # Skills & Learning
     strongSkills: List[str] = Field(default_factory=list)
     wantToImprove: List[str] = Field(default_factory=list)
     learningStyle: str
     timeCommitment: str
+    
+    # Goals & Constraints
     shortTermGoal: str
     concerns: Optional[str] = None
     additionalInfo: Optional[str] = None
-    agreeToTerms: bool = Field(..., description="Must be true to submit")
+    agreeToTerms: bool
+    
+    # Course Information (Updated)
+    allCourses: List[CourseInfo] = Field(default_factory=list)
+    selectedCourse: Optional[CourseInfo] = None
+    
+    # Metadata
     submittedAt: str  # ISO 8601 timestamp
-    walletAddress: str = Field(..., min_length=42, max_length=42, description="Ethereum wallet address")
+    walletAddress: str
+    
+    
 
     class Config:
         json_schema_extra = {
@@ -122,24 +150,25 @@ class CareerOnboardingRequest(BaseModel):
         }
 
 class CareerOnboardingResponse(BaseModel):
-    """Response after processing career onboarding."""
-    success: bool
-    profileId: str  # wallet_address
-    recommendations: Dict
-    message: str
+    """Response matching the Expected API Response Format in markdown."""
+    careerProfile: Optional[str] = "Profile pending..."
+    courseMatchAnalysis: Optional[str] = "Analysis pending..."
+    suggestedCourses: Optional[List[SuggestedCourse]] = Field(default_factory=list)
+    additionalNotes: Optional[str] = None
 
     class Config:
         json_schema_extra = {
             "example": {
-                "success": True,
-                "profileId": "0x1234567890123456789012345678901234567890",
-                "recommendations": {
-                    "learningPath": "Beginner → Intermediate → Advanced",
-                    "recommendedCourses": ["Blockchain Fundamentals", "Solidity Basics"],
-                    "skillPriorities": ["Smart Contracts", "DeFi"],
-                    "timeline": "6-12"
-                },
-                "message": "Welcome! Your career profile has been created. Let's start your learning journey!"
+                "careerProfile": "Based on your background...",
+                "courseMatchAnalysis": "The course is an excellent starting point...",
+                "suggestedCourses": [
+                    {
+                        "courseId": "2",
+                        "courseName": "Smart Contract Development",
+                        "reason": "Builds on your JS background."
+                    }
+                ],
+                "additionalNotes": "Consider completing the basics first."
             }
         }
 
