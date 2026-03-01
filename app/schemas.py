@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, List
 from datetime import datetime
+from typing import Dict, List, Optional
+
+from pydantic import BaseModel, Field
 
 # ==================== STUDENT AGENT ====================
 
@@ -38,9 +39,7 @@ class StudentChatRequest(BaseModel):
                     "current_chapter": 2,
                     "current_chapter_title": "Smart contract security basics",
                     "current_chapter_summary": "Overview of key vulnerabilities and best practices.",
-                    "completed_courses": [
-                        {"course_id": 1, "title": "Intro to Web3"}
-                    ],
+                    "completed_courses": [{"course_id": 1, "title": "Intro to Web3"}],
                 },
             }
         }
@@ -62,62 +61,65 @@ class StudentChatResponse(BaseModel):
             }
         }
 
+
 # ==================== CAREER ONBOARDING ====================
+
 
 class CourseInfo(BaseModel):
     courseId: str
     courseName: str
+
 
 class SuggestedCourse(BaseModel):
     courseId: str
     courseName: str
     reason: Optional[str] = None
 
+
 class CareerOnboardingRequest(BaseModel):
     """Career onboarding form data structure."""
+
     # Current Situation
     currentStatus: str = Field(..., description="Current employment status")
     currentRole: Optional[str] = None
     yearsOfExperience: Optional[str] = None
     industryBackground: str
-    
+
     # Tech Background
     technicalLevel: str
     programmingLanguages: List[str] = Field(default_factory=list)
     hasBlockchainExp: str
     hasAIExp: str
-    
+
     # Career Goals
     targetRole: List[str] = Field(..., min_items=1)
     careerTimeline: str
     geographicPreference: str
-    
+
     # Motivation & Interests
     primaryMotivation: List[str] = Field(default_factory=list)
     webThreeInterest: Optional[str] = None
     aiInterest: Optional[str] = None
-    
+
     # Skills & Learning
     strongSkills: List[str] = Field(default_factory=list)
     wantToImprove: List[str] = Field(default_factory=list)
     learningStyle: str
     timeCommitment: str
-    
+
     # Goals & Constraints
     shortTermGoal: str
     concerns: Optional[str] = None
     additionalInfo: Optional[str] = None
     agreeToTerms: bool
-    
+
     # Course Information (Updated)
     allCourses: List[CourseInfo] = Field(default_factory=list)
     selectedCourse: Optional[CourseInfo] = None
-    
+
     # Metadata
     submittedAt: str  # ISO 8601 timestamp
     walletAddress: str
-    
-    
 
     class Config:
         json_schema_extra = {
@@ -145,12 +147,14 @@ class CareerOnboardingRequest(BaseModel):
                 "additionalInfo": "I have React experience",
                 "agreeToTerms": True,
                 "submittedAt": "2024-01-15T10:30:00.000Z",
-                "walletAddress": "0x1234567890123456789012345678901234567890"
+                "walletAddress": "0x1234567890123456789012345678901234567890",
             }
         }
 
+
 class CareerOnboardingResponse(BaseModel):
     """Response matching the Expected API Response Format in markdown."""
+
     careerProfile: Optional[str] = "Profile pending..."
     courseMatchAnalysis: Optional[str] = "Analysis pending..."
     suggestedCourses: Optional[List[SuggestedCourse]] = Field(default_factory=list)
@@ -165,14 +169,16 @@ class CareerOnboardingResponse(BaseModel):
                     {
                         "courseId": "2",
                         "courseName": "Smart Contract Development",
-                        "reason": "Builds on your JS background."
+                        "reason": "Builds on your JS background.",
                     }
                 ],
-                "additionalNotes": "Consider completing the basics first."
+                "additionalNotes": "Consider completing the basics first.",
             }
         }
 
+
 # ==================== USER PROFILE ====================
+
 
 class UserProfileResponse(BaseModel):
     wallet_address: str
@@ -183,19 +189,23 @@ class UserProfileResponse(BaseModel):
     total_conversations: int
     last_active: datetime
 
+
 class UserProfileUpdate(BaseModel):
     career_context: Optional[Dict] = None
     skill_profile: Optional[Dict] = None
     learning_preferences: Optional[Dict] = None
     learning_challenges: Optional[List[str]] = None
-    
+
+
 # ==================== COURSE RECOMMENDATIONS ====================
+
 
 class CourseRecommendationCreate(BaseModel):
     wallet_address: str
     course_id: int
     reason: str
     priority: int = Field(default=3, ge=1, le=5)
+
 
 class CourseRecommendationResponse(BaseModel):
     id: int
@@ -206,7 +216,9 @@ class CourseRecommendationResponse(BaseModel):
     is_enrolled: bool
     created_at: datetime
 
+
 # ==================== ANALYTICS ====================
+
 
 class AgentAnalyticsCreate(BaseModel):
     agent_type: str
@@ -218,9 +230,91 @@ class AgentAnalyticsCreate(BaseModel):
     wallet_address: Optional[str] = None
     course_id: Optional[int] = None
 
+
 class AgentAnalyticsResponse(BaseModel):
     total_requests: int
     avg_execution_time_ms: float
     avg_tokens_per_request: float
     success_rate: float
     most_common_errors: List[Dict]
+
+
+class CourseEvaluationRequest(BaseModel):
+    """
+    Request body for the course evaluation endpoint.
+    The caller supplies the raw course content as a string.
+    For file uploads use the multipart endpoint instead (see routes).
+    """
+
+    course_content: str = Field(
+        ...,
+        min_length=50,
+        max_length=100_000,
+        description="Full text content of the course to be evaluated.",
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "course_content": (
+                    "Module 1: Introduction to Solidity\n"
+                    "In this module learners will explore the fundamentals of the "
+                    "Solidity programming language used for Ethereum smart contracts..."
+                )
+            }
+        }
+
+
+class CourseEvaluationResponse(BaseModel):
+    """
+    Structured result returned by the course evaluation pipeline.
+    All fields except *pass_mark* can be None when an error occurs.
+    """
+
+    category: Optional[str] = Field(
+        None,
+        description="Detected ABYA University course cluster.",
+    )
+    grades: Optional[Dict[str, int]] = Field(
+        None,
+        description="Per-element scores (0-100) keyed by rubric element name.",
+    )
+    final_score: Optional[float] = Field(
+        None,
+        description="Weighted final score as a percentage.",
+    )
+    passed: Optional[bool] = Field(
+        None,
+        description="True if final_score >= pass_mark.",
+    )
+    pass_mark: int = Field(
+        80,
+        description="The passing threshold (default 80).",
+    )
+    error: Optional[str] = Field(
+        None,
+        description="Human-readable error message when evaluation cannot complete.",
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "category": "Blockchain Technology and Development",
+                "grades": {
+                    "Learner Agency": 85,
+                    "Critical Thinking": 78,
+                    "Collaborative Learning": 70,
+                    "Reflective Practice": 65,
+                    "Adaptive Learning": 80,
+                    "Authentic Learning": 88,
+                    "Technology Integration": 90,
+                    "Learner Support": 72,
+                    "Assessment for Learning": 75,
+                    "Engagement and Motivation": 68,
+                },
+                "final_score": 81.37,
+                "passed": True,
+                "pass_mark": 80,
+                "error": None,
+            }
+        }
