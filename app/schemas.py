@@ -291,6 +291,14 @@ class CourseEvaluationResponse(BaseModel):
         80,
         description="The passing threshold (default 80).",
     )
+    effective_pass_mark: int = Field(
+        80,
+        description="The threshold actually used for pass/fail. Equals pass_mark in production; reduced in lenient dev mode.",
+    )
+    lenient_mode: bool = Field(
+        False,
+        description="True when DEV_LENIENT_GRADING is enabled and a reduced threshold is in use.",
+    )
     error: Optional[str] = Field(
         None,
         description="Human-readable error message when evaluation cannot complete.",
@@ -315,6 +323,8 @@ class CourseEvaluationResponse(BaseModel):
                 "final_score": 81.37,
                 "passed": True,
                 "pass_mark": 80,
+                "effective_pass_mark": 20,
+                "lenient_mode": True,
                 "error": None,
             }
         }

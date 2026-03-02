@@ -96,13 +96,29 @@ COURSE_CLUSTERS: list[str] = list(RUBRIC_WEIGHTS.keys())
 EVALUATION_ELEMENTS: list[str] = list(
     RUBRIC_WEIGHTS["Blockchain Technology and Development"].keys()
 )
-PASS_MARK: int = 80
+PASS_MARK: int = 80  # Production threshold
 
+# ---------------------------------------------------------------------------
+# Leniency flag
+# ---------------------------------------------------------------------------
+# Set DEV_LENIENT_GRADING=true in your .env during development.
+# When enabled the effective pass mark drops to 1/4 of PASS_MARK (20)
+# so courses that don't yet meet the full rubric can still be tested end-to-end.
+# In production leave this unset or set it to false.
+
+_LENIENT_DIVISOR = 4
+
+
+def _effective_pass_mark() -> int:
+    """Return the pass mark appropriate for the current environment."""
+    lenient = getattr(settings, "DEV_LENIENT_GRADING", False)
+    if isinstance(lenient, str):
+        lenient = lenient.lower() in ("true", "1", "yes")
+    return PASS_MARK // _LENIENT_DIVISOR if lenient else PASS_MARK
 
 # ---------------------------------------------------------------------------
 # Graph state
 # ---------------------------------------------------------------------------
-
 
 class EvaluationState(TypedDict):
     # Input
@@ -119,11 +135,9 @@ class EvaluationState(TypedDict):
     # Internal message log (mirrors StudentCompanionAgent pattern)
     messages: Annotated[list, operator.add]
 
-
 # ---------------------------------------------------------------------------
 # Agent
 # ---------------------------------------------------------------------------
-
 
 class CourseEvaluationAgent:
     """
@@ -363,7 +377,7 @@ class CourseEvaluationAgent:
                 "grades": None,
                 "final_score": None,
                 "passed": None,
-                "pass_mark": PASS_MARK,
+                "pass_mark": _effective_pass_mark(),
                 "error": "Course content is empty.",
             }
 
@@ -373,7 +387,7 @@ class CourseEvaluationAgent:
             "grades": None,
             "final_score": None,
             "passed": None,
-            "pass_mark": PASS_MARK,
+            "pass_mark": _effective_pass_mark(),
             "error": None,
             "messages": [],
         }
@@ -385,6 +399,8 @@ class CourseEvaluationAgent:
             "grades": final_state.get("grades"),
             "final_score": final_state.get("final_score"),
             "passed": final_state.get("passed"),
-            "pass_mark": final_state.get("pass_mark", PASS_MARK),
+            "pass_mark": PASS_MARK,
+            "effective_pass_mark": final_state.get("pass_mark", PASS_MARK),
+            "lenient_mode": final_state.get("pass_mark", PASS_MARK) < PASS_MARK,
             "error": final_state.get("error"),
         }
