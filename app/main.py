@@ -1,14 +1,9 @@
-from fastapi import APIRouter, Depends, FastAPI, File, HTTPException, UploadFile, status
+from fastapi import Depends, FastAPI, HTTPException, APIRouter, UploadFile, File, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from .agents.course_agent import (
-    COURSE_CLUSTERS,
-    EVALUATION_ELEMENTS,
-    PASS_MARK,
-    CourseEvaluationAgent,
-)
 from .agents.student_agent import StudentCompanionAgent
+from .agents.course_agent import CourseEvaluationAgent, COURSE_CLUSTERS, EVALUATION_ELEMENTS, PASS_MARK, _effective_pass_mark
 from .database import get_db
 from .schemas import (
     AgentAnalyticsCreate,
@@ -43,6 +38,7 @@ app.add_middleware(
 
 # Shared stateless course agent instance (no DB dependency)
 _course_agent = CourseEvaluationAgent()
+
 
 # ---------------------------------------------------------------------------
 # Routers
@@ -197,7 +193,8 @@ async def student_learning_mode(
 # ---------------------------------------------------------------------------
 # Course Evaluation
 # ---------------------------------------------------------------------------
-#
+
+
 @course_router.post(
     "/evaluate",
     response_model=CourseEvaluationResponse,
@@ -207,9 +204,7 @@ async def student_learning_mode(
         "cluster category, per-element grades, weighted final score, and pass/fail result."
     ),
 )
-async def evaluate_course_json(
-    request: CourseEvaluationRequest,
-) -> CourseEvaluationResponse:
+async def evaluate_course_json(request: CourseEvaluationRequest) -> CourseEvaluationResponse:
     result = _course_agent.evaluate(request.course_content)
     return CourseEvaluationResponse(**result)
 
@@ -268,9 +263,12 @@ async def evaluate_course_upload(
     summary="List available ABYA rubric clusters",
 )
 async def list_clusters() -> dict:
+    effective = _effective_pass_mark()
     return {
         "clusters": COURSE_CLUSTERS,
         "pass_mark": PASS_MARK,
+        "effective_pass_mark": effective,
+        "lenient_mode": effective < PASS_MARK,
         "evaluation_elements": EVALUATION_ELEMENTS,
     }
 
@@ -283,9 +281,11 @@ app.include_router(career_router)
 app.include_router(student_router)
 app.include_router(course_router)
 
+
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
+
 if __name__ == "__main__":
     import uvicorn
 
